@@ -27,8 +27,8 @@ import json
 import select
 import mysql.connector
 
-
 bluetooth_adr = "78:A5:04:8C:17:3D"
+
 def floatfromhex(h):
     t = float.fromhex(h)
     if t > float.fromhex('7FFF'):
@@ -101,6 +101,7 @@ datalog = sys.stdout
 class SensorCallbacks:
 
     data = {}
+    
 
     def __init__(self,addr):
         self.data['addr'] = addr
@@ -109,56 +110,65 @@ class SensorCallbacks:
         objT = (v[1]<<8)+v[0]
         ambT = (v[3]<<8)+v[2]
         targetT = calcTmpTarget(objT, ambT)
-        #self.data['t006'] = targetT
-        #print "T006 %.1f" % targetT
+        self.data['tempA'] = targetT
+        print "T006 %.1f" % targetT
 
 
 
+    def humidity(self, v):
+        rawT = (v[1]<<8)+v[0]
+        rawH = (v[3]<<8)+v[2]
+        (t, rh) = calcHum(rawT, rawH)
+        self.data['humd'] = rh
+        print "HUMD %.1f" % rh
 
     def baro(self,v):
         global barometer
         global datalog
         rawT = (v[1]<<8)+v[0]
         rawP = (v[3]<<8)+v[2]
-        (temp, pres) = barometer.calc(rawT, rawP)
-	self.data['temperature'] = temp
+        (temp, pres) =  barometer.calc(rawT, rawP)
+
+	self.data['tempIR'] = temp
 	self.data['pression'] = pres
         print "BARO", temp, pres
         
-	cnx = mysql.connector.connect(user='root', password='data',
-                              host='localhost',
-                              database='bleValues')
+        cnx = mysql.connector.connect(user='root', password='data',
+                                          host='localhost',
+                                          database='bleValues')
+	
+        cursor = cnx.cursor()
+        query = ("INSERT INTO value (temperature, pression, date_v ,time_v) VALUES (%s,%s,%s,%s)")
+        data = (temp,pres,time.strftime("%Y-%m-%d"),time.strftime("%H:%M:%S"))	
+	
+        cursor.execute(query,data)
 
-	cursor = cnx.cursor()
-	query = ("INSERT INTO value (temperature, pression, date_v ,time_v) VALUES (%s,%s,%s,%s)")
-	data = (temp,pres,time.strftime("%Y-%m-%d"),time.strftime("%H:%M:%S"))	
-	cursor.execute(query,data)
-	self.data['date'] = time.strftime("%Y-%m-%d")
-	self.data['time'] = time.strftime("%H:%M:%S")
-	# Make sure data is committed to the database
-	cnx.commit()
-	cursor.close()
-	cnx.close()
-        # The socket or output file mightnot be writeable
+        self.data['date'] = time.strftime("%Y-%m-%d")
+        self.data['time'] = time.strftime("%H:%M:%S")
+        # Make sure data is committed to the database
+        cnx.commit()
+        cursor.close()
+        cnx.close()
+
+
+        # The socket or output file might not be writeable
         # check with select so we don't block.
         (re,wr,ex) = select.select([],[datalog],[],0)
         if len(wr) > 0:
-            #datalog.write(json.dumps(self.data) + "\n")
+	    datalog.write(json.dumps(self.data) + "\n")
             datalog.flush()
-	    with open("data.json","w") as file:
-	    	file.write(json.dumps(self.data))
-		
-	    file.close()
-	    time.sleep(1)
+            with open("data.json","w") as file:
+                file.write(json.dumps(self.data))
+            file.close()
+            time.sleep(1)
             pass
-
 
 
 def main():
     global datalog
     global barometer
 
-    
+    #bluetooth_adr = sys.argv[1]
     #data['addr'] = bluetooth_adr
     if len(sys.argv) > 2:
         datalog = open(sys.argv[2], 'w+')
@@ -175,7 +185,13 @@ def main():
       tag.char_write_cmd(0x29,0x01)
       tag.char_write_cmd(0x26,0x0100)
 
-  
+
+      # enable humidity
+      tag.register_cb(0x38, cbs.humidity)
+      tag.char_write_cmd(0x3c,0x01)
+      tag.char_write_cmd(0x39,0x0100)
+
+
       # fetch barometer calibration
       tag.char_write_cmd(0x4f,0x02)
       rawcal = tag.char_read_hnd(0x52)
