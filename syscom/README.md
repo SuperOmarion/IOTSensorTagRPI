@@ -25,5 +25,6 @@
 # il faudra modifier le fichier script.js dans le dossier www/js de telle sorte de mettre l'adresse ip de la raspberry au lieu de localhost
 # puis dans le navigateur de votre pc ou smartphone vous lancez le lien
 << adresse_ip_raspberry:8000 >>
-.
-   
+# dans la page de l'authentification mettez :
+<< user ---> omar
+   mot de passe  ---> upmc >>
