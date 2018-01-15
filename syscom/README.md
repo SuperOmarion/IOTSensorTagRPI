@@ -26,5 +26,5 @@
 # puis dans le navigateur de votre pc ou smartphone vous lancez le lien
 << adresse_ip_raspberry:8000 >>
 # dans la page de l'authentification mettez :
-<< user ---> omar
-   mot de passe  ---> upmc >>
+<< user ---> omar >>
+<< mot de passe  ---> upmc >>
