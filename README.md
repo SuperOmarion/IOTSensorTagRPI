@@ -1,5 +1,5 @@
 # SysComFinal
-# Sur votre rasberry installez mysql-server
+# Sur votre raspberry installez mysql-server
 <<  sudo apt-get install mysql-server >>
 # accedez à mysql :
 << sudo mysql -u root >>
