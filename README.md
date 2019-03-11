@@ -1,6 +1,6 @@
 # IOTSensorTagRPI
-**Sur votre raspberry installez mysql-server
-<<  sudo apt-get install mysql-server >>
+* Sur votre raspberry installez mysql-server
+<< sudo apt-get install mysql-server >>
 * accedez à mysql :
 << sudo mysql -u root >>
 * créez une base de donnée et accedez à cette derniere (dans mon cas c'est bleValues ;; vous pouvez la personnaliser)
