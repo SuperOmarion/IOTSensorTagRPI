@@ -1,4 +1,4 @@
-# IOTSensorTagRPI
+* IOTSensorTagRPI
 # Sur votre raspberry installez mysql-server
 <<  sudo apt-get install mysql-server >>
 # accedez à mysql :
